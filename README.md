@@ -1,4 +1,3 @@
-hot-key
-================
+# hot-key
 
-See the [component page](http://fweinb.github.io/hot-key) for more information.
+<hot-key> is a Polymer Web Component that makes it easy to define keyboard shortcuts in your webapp.

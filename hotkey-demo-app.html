@@ -1,0 +1,53 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="hot-key.html">
+<dom-module id="hotkey-demo-app">
+  <template>
+    <label>Enable shortcuts: </label>
+    <input type="checkbox" checked="{{active}}">
+    <br>
+    <p>
+      Hit <kbd>?</kbd> or <kbd>meta</kbd> + <kbd>i</kbd> to fire the help event.
+      <hot-key shortcut-array="['?', 'meta+i']" trigger="help" if="{{active}}"></hot-key>
+    </p>
+
+    <p>
+      Hit the keys <kbd>↑</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> <kbd>←</kbd> <kbd>→</kbd> <kbd>B</kbd> <kbd>A</kbd> in sequence, to trigger the konami code.
+      <hot-key shortcut="up up down down left right left right b a" trigger="konami" if="{{active}}"></hot-key>
+    </p>
+
+    <p>
+      Hit <kbd>Ctrl</kbd> + <kbd>S</kbd> to demo trapping default browser shortcuts.
+      <hot-key trap shortcut-array="['ctrl+s', 'command+s']" trigger="trap" if="{{active}}"></hot-key>
+    </p>
+
+    <div>Log:</div>
+    <textarea rows="100" cols="100">{{ log }}</textarea>
+  </template>
+  <script>
+    Polymer({
+      is: 'hotkey-demo-app',
+      properties: {
+        active: {
+          type: Boolean,
+          value: true,
+        },
+        log: {
+          type: String,
+          value: '',
+        },
+      },
+      ready: function () {
+        this.active = this.active || true;
+        this.addEventListener('help', function (e) {
+          this.log += 'Help event detected\n';
+        }.bind(this));
+        this.addEventListener('konami', function (e) {
+          this.log += 'Konami event detected\n';
+        }.bind(this));
+        this.addEventListener('trap', function (e) {
+          this.log += 'Trap event detected\n';
+        }.bind(this));
+      },
+    });
+  </script>
+</dom-module>
