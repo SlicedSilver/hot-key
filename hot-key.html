@@ -1,0 +1,160 @@
+<link rel="import" href="../polymer/polymer.html">
+<script src="../mousetrap/mousetrap.js"></script>
+
+<!--
+hot-key is a Polymer Web Component that makes it easy to define keyboard shortcuts in your webapp. hot-key makes use of mousetrap js (https://craig.is/killing/mice)
+
+Single Shortcut Example:
+
+    <hot-key shortcut="?" trigger="help" if="{{active}}"></hot-key>
+
+
+Multiple Shortcuts Example:
+
+    <hot-key shortcut-array="['?', 'meta+i']" trigger="help" if="{{active}}"></hot-key>
+
+Sequence Shortcut Example:
+
+    <hot-key shortcut="up up down down left right left right b a" trigger="konami" if="{{active}}"></hot-key>
+
+Default Browser Shortcut Override Example:
+
+    <hot-key trap shortcut-array="['ctrl+s', 'command+s']" trigger="trap" if="{{active}}"></hot-key>
+
+@demo demo/index.html
+-->
+
+<dom-module id="hot-key">
+  <script>
+    Polymer({
+      is: 'hot-key',
+      properties: {
+        /**
+        * `_activeShortcut` is the currently active shortcut
+        *
+        * @type string|array
+        */
+        _activeShortcut: { value: null },
+        /**
+        * A boolean to indicate if this hot-key is active
+        *
+        * @type boolean
+        */
+        if: {
+          type: Boolean,
+          value: true,
+          notify: true,
+        },
+        /**
+         * A single shortcut that is used
+         * to trigger the event defined in `trigger`.
+         *
+         * @type string
+         */
+        shortcut: {
+          type: String,
+          value: function () {
+            return '';
+          },
+
+          notify: false,
+          observer: 'shortcutChanged',
+        },
+        /**
+         * An array of shortcuts that are used
+         * to trigger the event defined in `trigger`
+         *
+         * Usage:
+         * shortcut-array="['?', 'meta+i']"
+         *
+         * @type string
+         */
+        shortcutArray: {
+          type: String,
+          value: function () {
+            return '';
+          },
+
+          observer: 'shortcutChanged',
+        },
+        /**
+         * Trap the event to prevent propagation and default browser behavior.
+         *
+         * @default false
+         * @type boolean
+         */
+        trap: {
+          type: Boolean,
+          value: false,
+          notify: true,
+        },
+        /**
+        * Fire event if a shortcut was pressed.
+        * The name of the event equals the string defined in attribute `trigger
+        *
+        * @event attribute 'trigger'
+        * @detail {{sound: String}}
+        */
+        /**
+        * The event will be triggered if the shortcut was pressed.
+        */
+        trigger: {
+          value: null,
+          notify: true,
+          observer: 'triggerChanged',
+        },
+      },
+      ready: function () {
+        if (this.shortcut !== undefined && this.shortcut.length !== 0 && this.trigger !== null) {
+          this._activeShortcut = this.shortcut.slice(0);
+          Mousetrap.bind(this.shortcut, this._trigger.bind(this));
+        }
+        if (this.shortcutArray !== undefined && this.shortcutArray.length !== 0){
+          var res = this.shortcutArray.replace(/\'/g, "\"");
+          var answer = JSON.parse('{"shortarray":' + res + '}')
+          if (answer.shortarray !== undefined && answer.shortarray.length !== 0 && this.trigger !== null) {
+            this._activeShortcut = answer.shortarray;
+            Mousetrap.bind(answer.shortarray, this._trigger.bind(this));
+          }
+        }
+
+      },
+
+      reready: function () {
+        if (!!this._activeShortcut)
+          Mousetrap.unbind(this._activeShortcut);
+        this.ready();
+      },
+
+      triggerChanged: function () {
+        this.reready();
+      },
+
+      shortcutChanged: function () {
+        this.reready();
+      },
+
+      get _trigger() {
+        return this.wrapTrigger(this.eventTrigger(this.trigger));
+      },
+
+      eventTrigger: function (eventName) {
+        return function () {
+          this.fire(eventName, { scope: Polymer.dom(this).parentNode });
+        };
+      },
+
+      wrapTrigger: function (funcToTrigger) {
+        return function () {
+          if (this.if) {
+            funcToTrigger.bind(this)();
+          }
+
+          if (this.trap) {
+            return false;
+          }
+        }.bind(this);
+      },
+    });
+  </script>
+</dom-module>
